@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from openai import AzureOpenAI
 from docx import Document
 from dotenv import load_dotenv
+import uuid
 
 load_dotenv()
 
@@ -25,6 +26,8 @@ client = AzureOpenAI(
     api_key=os.getenv("API_KEY_DANI_"),
 )
 
+def get_id():
+    return str(uuid.uuid4())
 
 async def read_md(file_path: str):
     doc_dir = os.path.normpath(os.path.join(current_dir,file_path))
@@ -109,15 +112,16 @@ async def create_docx(parragragh: str):
 
     doc.add_paragraph(f'{parragragh}')
 
-    doc.save('ejemplo_reporte_limpio.docx')
+    id = get_id()
 
+    # Ruta al archivo dentro de la carpeta 'documents'
+    file_name = f'reporte_isp_{id}.docx'
+    file_path = os.path.join('documents', file_name)
+
+    doc.save(file_path)
     print("Listo creado el documento docx")
 
 
-
-
-
-    
     
 @router_.get("/")
 async def root():
@@ -195,9 +199,12 @@ async def comparar_docus(file_1: UploadFile = File(...), file_2: UploadFile = Fi
 
     response = await chat_comparation(prompt=final_prompt)
     
-    file_new = current_dir + f"/archivo_final.md"
+    #file_new = current_dir + f"/archivo_final_{id}.md"
+    id = get_id()
+    file_name = f"archivo_final_{id}.md"
+    file_path = os.path.join('documents', file_name)
     try:
-        with open(file_new, mode="w", encoding="utf-8") as f:
+        with open(file_path, mode="w", encoding="utf-8") as f:
             f.write(response)
             return {"response_comparation":"ARCHIVO MARKDOWN LISTO!"}
     except Exception as e:
